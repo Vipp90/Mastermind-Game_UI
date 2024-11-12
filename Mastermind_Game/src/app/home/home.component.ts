@@ -5,21 +5,27 @@ import { HighscoreTableComponent } from "../highscore-table/highscore-table.comp
 import { HighscoreService } from "../highscore.service";
 import { FormsModule } from "@angular/forms";
 import { ColorButtonComponent } from "../color-button/color-button.component";
+import { MainContainerComponent } from "../main-container/main-container.component";
 
 @Component({
   selector: "app-home",
   standalone: true,
-  imports: [NgFor, HighscoreTableComponent, FormsModule, ColorButtonComponent],
+  imports: [
+    NgFor,
+    HighscoreTableComponent,
+    FormsModule,
+    ColorButtonComponent,
+    MainContainerComponent,
+  ],
   template: `
     <div class="container max-w-none">
-      <div class="header">Mastermind</div>
-      <div class="main-container">
-        <div class="column">
+      <app-main-container>
+        <div left-column>
           <app-highscore-table
             [highscoreTable]="highscoreTable"
           ></app-highscore-table>
         </div>
-        <div class="column center-column">
+        <div center-column>
           <p>Wybierz kolory dla gracza</p>
           <div class="button-container">
             <app-color-button *ngFor="let button of buttons"></app-color-button>
@@ -35,7 +41,7 @@ import { ColorButtonComponent } from "../color-button/color-button.component";
           <p style="font-size:15px; text-align:center; padding-bottom:15px">
             Instrukcja
           </p>
-          <p style="font-size:12px; text-align:center">
+          <p style="font-size:12px; text-align:justify">
             Gra polega na odgadnięciu kolorowego kodu składającego się z 4
             elementów. Każdy element może być kolorem jednym z 6 (<a
               style="color:red"
@@ -49,7 +55,7 @@ import { ColorButtonComponent } from "../color-button/color-button.component";
             otrzymujemy wskazówki. Czarne kółko
             <img src="assets/images/blackCircle.png" />oznacza, że jeden z
             kolorów jest na właściwym miejscu, białe kółko
-            <img src="/assets/images/whiteCircle.png" />oznacza, że jeden z
+            <img src="/assets/images/whiteCircle.png" /> oznacza, że jeden z
             kolorów jest właściwy ale jest w złym miejscu, natomiast kółko z
             krzyżykiem
             <img src="/assets/images/emptyCircle.png" />
@@ -62,7 +68,7 @@ import { ColorButtonComponent } from "../color-button/color-button.component";
             <a style="text-align:center">Powodzenia! :)</a>
           </p>
         </div>
-        <div class="column">
+        <div right-column>
           <div class="name-input">
             <label for="playerName">Twoje imię</label>
             <input
@@ -74,7 +80,7 @@ import { ColorButtonComponent } from "../color-button/color-button.component";
             />
           </div>
         </div>
-      </div>
+      </app-main-container>
     </div>
   `,
   styles: `
@@ -88,13 +94,6 @@ import { ColorButtonComponent } from "../color-button/color-button.component";
     padding: 0; 
   }
  
-.header {
-  color: #1E40AF; 
-  background-color: black;
-  padding: 16px 0; 
-  font-size: 2rem;
-  text-align: center; 
-}
 .primary-button-container {
   display: flex;                
   gap: 1rem;                   
@@ -104,29 +103,14 @@ import { ColorButtonComponent } from "../color-button/color-button.component";
   cursor: pointer;         
 }
 
-.main-container {
-  display: flex;
-  flex-grow:1;
-  align-items: stretch;
-}
+
 
 img {
   display: inline-block;
   vertical-align: middle;
 }
 
-.column {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  padding: 1rem;
-}
 
-.center-column {
-  align-items: center;
-  text-align: center;
-}
 
 .button-container {
   display: flex;

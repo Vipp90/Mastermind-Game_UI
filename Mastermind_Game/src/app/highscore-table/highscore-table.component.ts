@@ -34,7 +34,7 @@ import { Highscore } from "../home/Highscore";
     border-collapse: collapse;
   }
   .border {
-    border: 1px solid #ccc;
+    border: 1px black solid;
   }
   .bg-gray-200 {
     background-color: #f5f5f5;
