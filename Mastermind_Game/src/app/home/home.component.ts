@@ -2,10 +2,14 @@ import { Component } from "@angular/core";
 import { NgFor } from "@angular/common";
 import { Highscore } from "./Highscore";
 import { HighscoreTableComponent } from "../highscore-table/highscore-table.component";
-import { HighscoreService } from "../highscore.service";
+import { HighscoreService } from "../services/highscore.service";
 import { FormsModule } from "@angular/forms";
 import { ColorButtonComponent } from "../color-button/color-button.component";
 import { MainContainerComponent } from "../main-container/main-container.component";
+import { GameService } from "../services/game.service";
+import { GameInfo } from "../models/GameInfo";
+import { Colors } from "../models/GameInfo";
+import { GameMode } from "../models/GameInfo";
 
 @Component({
   selector: "app-home",
@@ -28,13 +32,18 @@ import { MainContainerComponent } from "../main-container/main-container.compone
         <div center-column>
           <p>Wybierz kolory dla gracza</p>
           <div class="button-container">
-            <app-color-button *ngFor="let button of buttons"></app-color-button>
+            <div *ngFor="let color of buttonColors; let i = index">
+              <app-color-button
+                [color]="color"
+                (colorChange)="changeColor($event, i)"
+              ></app-color-button>
+            </div>
           </div>
           <div class="primary-button-container">
-            <button class="btn-primary" (click)="startCustomGame()">
+            <button class="btn-primary" (click)="startGame(GameMode.ManualSet)">
               Ustaw kod
             </button>
-            <button class="btn-primary" (click)="startRandomGame()">
+            <button class="btn-primary" (click)="startGame(GameMode.RandomSet)">
               Losowa gra
             </button>
           </div>
@@ -103,14 +112,10 @@ import { MainContainerComponent } from "../main-container/main-container.compone
   cursor: pointer;         
 }
 
-
-
 img {
   display: inline-block;
   vertical-align: middle;
 }
-
-
 
 .button-container {
   display: flex;
@@ -129,14 +134,18 @@ img {
   `,
 })
 export class HomeComponent {
-  colors = ["blue", "red", "green", "yellow", "orange", "brown"];
   highscoreTable: Highscore[] = [];
   playerName = "";
+  GameMode = GameMode;
+  gameId = "";
 
   ngOnInit() {
     this.fetchHighscores();
   }
-  constructor(private highscoreService: HighscoreService) {}
+  constructor(
+    private highscoreService: HighscoreService,
+    private gameService: GameService
+  ) {}
   fetchHighscores(): void {
     this.highscoreService.getHighscores().subscribe({
       next: (scores) => (this.highscoreTable = scores),
@@ -144,13 +153,31 @@ export class HomeComponent {
     });
   }
 
-  buttons = [
-    { color: "white" },
-    { color: "white" },
-    { color: "white" },
-    { color: "white" },
+  buttonColors: Colors[] = [
+    Colors.White,
+    Colors.White,
+    Colors.White,
+    Colors.White,
   ];
 
-  startRandomGame() {}
-  startCustomGame() {}
+  changeColor(newColor: Colors, i: number) {
+    this.buttonColors[i] = newColor;
+  }
+
+  startGame(gameMode: GameMode) {
+    const gameInfo: GameInfo = {
+      playerName: this.playerName,
+      code: {
+        firstColor: this.buttonColors[0],
+        secondColor: this.buttonColors[1],
+        thirdColor: this.buttonColors[2],
+        fourthColor: this.buttonColors[3],
+      },
+      gameMode: gameMode,
+    };
+    this.gameService.createGame(gameInfo).subscribe({
+      next: (id) => (this.gameId = id),
+      error: (err) => console.error("Nie udało się utworzyć gry", err),
+    });
+  }
 }
