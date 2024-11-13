@@ -10,6 +10,8 @@ import { GameService } from "../services/game.service";
 import { GameInfo } from "../models/GameInfo";
 import { Colors } from "../models/GameInfo";
 import { GameMode } from "../models/GameInfo";
+import { NotificationService } from "../services/notification.service";
+import { ApiResponse } from "../models/ApiResponse";
 
 @Component({
   selector: "app-home",
@@ -144,7 +146,8 @@ export class HomeComponent {
   }
   constructor(
     private highscoreService: HighscoreService,
-    private gameService: GameService
+    private gameService: GameService,
+    private notificationService: NotificationService
   ) {}
   fetchHighscores(): void {
     this.highscoreService.getHighscores().subscribe({
@@ -165,6 +168,21 @@ export class HomeComponent {
   }
 
   startGame(gameMode: GameMode) {
+    if (gameMode === GameMode.RandomSet) {
+      if (this.playerName == "") {
+        this.notificationService.showError(
+          "Uzupełnij swoje imię zanim zaczniesz losową grę"
+        );
+        return;
+      }
+    } else if (gameMode === GameMode.ManualSet) {
+      if (this.buttonColors.includes(Colors.White)) {
+        this.notificationService.showError(
+          "Zanim rozpoczniesz grę musisz ustawić kod"
+        );
+        return;
+      }
+    }
     const gameInfo: GameInfo = {
       playerName: this.playerName,
       code: {
@@ -176,8 +194,13 @@ export class HomeComponent {
       gameMode: gameMode,
     };
     this.gameService.createGame(gameInfo).subscribe({
-      next: (id) => (this.gameId = id),
-      error: (err) => console.error("Nie udało się utworzyć gry", err),
+      next: (response: ApiResponse<string>) => {
+        this.gameId = response.body;
+      },
+      error: (err) => {
+        this.notificationService.showError("Nie udało się utworzyć gry");
+        console.error(err.error);
+      },
     });
   }
 }
