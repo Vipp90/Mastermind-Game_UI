@@ -1,6 +1,6 @@
 import { Component } from "@angular/core";
 import { NgFor } from "@angular/common";
-import { Highscore } from "./Highscore";
+import { Highscore } from "../models/Highscore";
 import { HighscoreTableComponent } from "../highscore-table/highscore-table.component";
 import { HighscoreService } from "../services/highscore.service";
 import { FormsModule } from "@angular/forms";
@@ -151,7 +151,7 @@ export class HomeComponent {
   ) {}
   fetchHighscores(): void {
     this.highscoreService.getHighscores().subscribe({
-      next: (scores) => (this.highscoreTable = scores),
+      next: (response) => (this.highscoreTable = response.body),
       error: (err) => console.error("Błąd pobierania wyników", err),
     });
   }

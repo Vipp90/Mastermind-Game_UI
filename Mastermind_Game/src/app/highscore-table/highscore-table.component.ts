@@ -1,6 +1,6 @@
 import { NgFor } from "@angular/common";
 import { Component, Input } from "@angular/core";
-import { Highscore } from "../home/Highscore";
+import { Highscore } from "../models/Highscore";
 
 @Component({
   selector: "app-highscore-table",

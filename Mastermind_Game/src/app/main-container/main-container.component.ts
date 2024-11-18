@@ -7,15 +7,12 @@ import { Component } from "@angular/core";
     <div class="main-container">
       <div class="column">
         <ng-content select="[left-column]"></ng-content>
-        <!-- Lewa kolumna -->
       </div>
       <div class="column center-column">
         <ng-content select="[center-column]"></ng-content>
-        <!-- Środkowa kolumna -->
       </div>
       <div class="column">
         <ng-content select="[right-column]"></ng-content>
-        <!-- Prawa kolumna -->
       </div>
     </div>
   `,
