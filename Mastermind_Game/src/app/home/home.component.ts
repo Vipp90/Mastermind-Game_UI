@@ -12,6 +12,7 @@ import { Colors } from "../models/GameInfo";
 import { GameMode } from "../models/GameInfo";
 import { NotificationService } from "../services/notification.service";
 import { ApiResponse } from "../models/ApiResponse";
+import { Router } from "@angular/router";
 
 @Component({
   selector: "app-home",
@@ -147,7 +148,8 @@ export class HomeComponent {
   constructor(
     private highscoreService: HighscoreService,
     private gameService: GameService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private router: Router
   ) {}
   fetchHighscores(): void {
     this.highscoreService.getHighscores().subscribe({
@@ -196,6 +198,7 @@ export class HomeComponent {
     this.gameService.createGame(gameInfo).subscribe({
       next: (response: ApiResponse<string>) => {
         this.gameId = response.body;
+        this.router.navigate(["/game-started", this.gameId]);
       },
       error: (err) => {
         this.notificationService.showError("Nie udało się utworzyć gry");
