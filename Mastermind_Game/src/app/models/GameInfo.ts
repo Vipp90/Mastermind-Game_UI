@@ -9,7 +9,7 @@ export enum GameMode {
   RandomSet,
 }
 
-type Code = {
+export type Code = {
   firstColor: Colors;
   secondColor: Colors;
   thirdColor: Colors;
