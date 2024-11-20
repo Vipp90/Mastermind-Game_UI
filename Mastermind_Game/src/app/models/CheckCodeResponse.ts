@@ -3,8 +3,8 @@ export type CheckCodeResponse = {
   hint: Hint;
 };
 
-type Hint = {
-  correctPlace: number;
-  wrongPlace: number;
-  notOccur: Number;
+export type Hint = {
+  readonly correctPlace: number;
+  readonly wrongPlace: number;
+  readonly notOccur: number;
 };
