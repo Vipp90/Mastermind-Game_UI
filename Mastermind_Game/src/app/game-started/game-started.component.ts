@@ -46,7 +46,10 @@ import { Router } from "@angular/router";
             <app-chance-show
               [index]="i"
               [ngStyle]="{
-                visibility: i !== chances ? 'visible' : 'hidden'
+                visibility:
+                  i !== chances || (!this.success && this.isEndGame)
+                    ? 'visible'
+                    : 'hidden'
               }"
             ></app-chance-show>
           </div>
@@ -92,6 +95,7 @@ export class GameStartedComponent {
 
   containerColors: Colors[][] = this.createEmptyContainers(6);
   chances = 0;
+  success = false;
   isEndGame = false;
   hints: Hint[] = [];
   hint?: Hint;
@@ -154,11 +158,24 @@ export class GameStartedComponent {
         this.handleCheckCodeResponse(response.body);
       },
       error: (err: any) => {
-        this.notificationService.showToast("error", "Nie udało się sprawdzić kodu.");
-        console.error(err.error);
         this.pauseStopwatch();
+        if (err instanceof Error) {
+          this.notificationService.showToast(
+            "error",
+            "Nie udało się sprawdzić kodu. " + err.message
+          );
+        } else {
+          this.notificationService.showToast(
+            "error",
+            "Gra została zakończona lub usunięta."
+          );
+        }
       },
     });
+  }
+
+  isApiResponse<T>(obj: any): obj is ApiResponse<T> {
+    return obj.success === "boolean";
   }
 
   areArraysEqual<T>(arr1: T[], arr2: T[]): boolean {
@@ -169,7 +186,8 @@ export class GameStartedComponent {
   handleCheckCodeResponse(response: CheckCodeResponse) {
     this.hints.push(response.hint);
     if (response.guessed) {
-      this.endGame(true, response.saveGame);
+      this.success = true;
+      this.endGame(this.success, response.saveGame);
     } else {
       this.handleWrongGuess();
     }
