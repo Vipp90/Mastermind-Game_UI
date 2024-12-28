@@ -1,6 +1,7 @@
 export type CheckCodeResponse = {
   guessed: boolean;
   hint: Hint;
+  saveGame: boolean;
 };
 
 export type Hint = {

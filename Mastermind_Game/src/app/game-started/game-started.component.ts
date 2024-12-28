@@ -11,6 +11,8 @@ import { ApiResponse } from "../models/ApiResponse";
 import { CheckCodeResponse, Hint } from "../models/CheckCodeResponse";
 import { NgFor, NgStyle } from "@angular/common";
 import { HintComponent } from "../hint/hint.component";
+import { ChanceShowComponent } from "../chance-show/chance-show.component";
+import { Router } from "@angular/router";
 
 @Component({
   selector: "app-game-started",
@@ -22,6 +24,7 @@ import { HintComponent } from "../hint/hint.component";
     NgFor,
     NgStyle,
     HintComponent,
+    ChanceShowComponent,
   ],
   template: `
     <div class="container max-w-none">
@@ -40,7 +43,12 @@ import { HintComponent } from "../hint/hint.component";
               [buttonColors]="containerColors[i]"
               (colorChange)="handleColorChange($event, i)"
             ></app-button-container>
-            <app-hint></app-hint>
+            <app-chance-show
+              [index]="i"
+              [ngStyle]="{
+                visibility: i !== chances ? 'visible' : 'hidden'
+              }"
+            ></app-chance-show>
           </div>
           <div class="primary-button-container">
             <button class="btn-primary" (click)="newGame()">Nowa gra</button>
@@ -76,7 +84,8 @@ export class GameStartedComponent {
   constructor(
     private route: ActivatedRoute,
     private gameService: GameService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private router: Router
   ) {
     this.gameId = this.route.snapshot.paramMap.get("gameId") ?? "";
   }
@@ -95,17 +104,34 @@ export class GameStartedComponent {
     return Array.from({ length: this.chances + 1 });
   }
 
-  newGame() {}
+  newGame() {
+    this.router.navigate([""]);
+  }
 
-  endGame(success: boolean) {
+  endGame(success: boolean, saveGame: boolean) {
     this.isEndGame = true;
     this.pauseStopwatch();
+    if (success) {
+      this.notificationService.showToast("success", "Brawo ! Odgadłeś kod!");
+      if (saveGame) {
+        this.gameService.saveScore(this.gameId!, this.stopwatch.time).subscribe({
+          error: (err) => {
+            this.notificationService.showToast("error", "Nie udało się zapisać wyniku");
+            console.error(err.error);
+          },
+        });
+      }
+    }
+    this.gameService.deleteGame(this.gameId!).subscribe();
   }
 
   checkCode() {
     if (this.isEndGame) return;
     if (this.containerColors[this.chances].includes(Colors.White)) {
-      this.notificationService.showError("Zanim sprawdzisz kod musisz ustawić kolory");
+      this.notificationService.showToast(
+        "error",
+        "Zanim sprawdzisz kod musisz ustawić kolory"
+      );
       return;
     }
 
@@ -115,7 +141,7 @@ export class GameStartedComponent {
         this.areArraysEqual(prevCode, this.containerColors[this.chances])
       );
     if (isDuplicate) {
-      this.notificationService.showError("Typowałeś już ten kod");
+      this.notificationService.showToast("error", "Typowałeś już ten kod");
       return;
     }
     this.startStopwatch();
@@ -127,9 +153,10 @@ export class GameStartedComponent {
       next: (response: ApiResponse<CheckCodeResponse>) => {
         this.handleCheckCodeResponse(response.body);
       },
-      error: (err) => {
-        this.notificationService.showError("Nie udało się sprawdzić kodu");
+      error: (err: any) => {
+        this.notificationService.showToast("error", "Nie udało się sprawdzić kodu.");
         console.error(err.error);
+        this.pauseStopwatch();
       },
     });
   }
@@ -141,9 +168,8 @@ export class GameStartedComponent {
 
   handleCheckCodeResponse(response: CheckCodeResponse) {
     this.hints.push(response.hint);
-    console.log(this.hints);
     if (response.guessed) {
-      this.endGame(true);
+      this.endGame(true, response.saveGame);
     } else {
       this.handleWrongGuess();
     }
@@ -153,7 +179,7 @@ export class GameStartedComponent {
     if (this.chances < 5) {
       this.chances++;
     } else {
-      this.endGame(false);
+      this.endGame(false, false);
     }
   }
 

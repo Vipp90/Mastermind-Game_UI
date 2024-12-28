@@ -153,14 +153,18 @@ export class HomeComponent {
   startGame(gameMode: GameMode) {
     if (gameMode === GameMode.RandomSet) {
       if (this.playerName == "") {
-        this.notificationService.showError(
+        this.notificationService.showToast(
+          "error",
           "Uzupełnij swoje imię zanim zaczniesz losową grę"
         );
         return;
       }
     } else if (gameMode === GameMode.ManualSet) {
       if (this.buttonColors.includes(Colors.White)) {
-        this.notificationService.showError("Zanim rozpoczniesz grę musisz ustawić kod");
+        this.notificationService.showToast(
+          "error",
+          "Zanim rozpoczniesz grę musisz ustawić kod"
+        );
         return;
       }
     }
@@ -180,7 +184,7 @@ export class HomeComponent {
         this.router.navigate(["/game-started", this.gameId]);
       },
       error: (err) => {
-        this.notificationService.showError("Nie udało się utworzyć gry");
+        this.notificationService.showToast("error", "Nie udało się utworzyć gry");
         console.error(err.error);
       },
     });
