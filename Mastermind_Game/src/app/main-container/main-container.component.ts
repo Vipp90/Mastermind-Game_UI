@@ -8,7 +8,7 @@ import { Component } from "@angular/core";
       <div class="column">
         <ng-content select="[left-column]"></ng-content>
       </div>
-      <div class="column center-column">
+      <div class="column">
         <ng-content select="[center-column]"></ng-content>
       </div>
       <div class="column">
@@ -30,9 +30,6 @@ import { Component } from "@angular/core";
         flex-direction: column;
         justify-content: flex-start;
         padding: 1rem;
-      }
-
-      .center-column {
         align-items: center;
         text-align: center;
       }

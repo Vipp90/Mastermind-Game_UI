@@ -101,6 +101,11 @@ import { ButtonContainerComponent } from "../button-container/button-container.c
   cursor: pointer;         
 }
 
+input {
+  margin-top: 10px;
+  text-align: center; 
+}
+
 img {
   display: inline-block;
   vertical-align: middle;
