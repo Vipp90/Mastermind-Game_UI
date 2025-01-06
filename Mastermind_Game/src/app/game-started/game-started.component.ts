@@ -9,10 +9,14 @@ import { NotificationService } from "../services/notification.service";
 import { Code } from "../models/GameInfo";
 import { ApiResponse } from "../models/ApiResponse";
 import { CheckCodeResponse, Hint } from "../models/CheckCodeResponse";
-import { NgFor, NgStyle } from "@angular/common";
+import { NgFor, NgStyle, NgIf } from "@angular/common";
 import { HintComponent } from "../hint/hint.component";
 import { ChanceShowComponent } from "../chance-show/chance-show.component";
 import { Router } from "@angular/router";
+import { HiddenCodeComponent } from "../hidden-code/hidden-code.component";
+import { MusicPlayerComponent } from "../music-player/music-player.component";
+import { FormsModule } from "@angular/forms";
+import { CheckCodeRequest } from "../models/CheckCodeRequest";
 
 @Component({
   selector: "app-game-started",
@@ -22,14 +26,28 @@ import { Router } from "@angular/router";
     StopwatchComponent,
     ButtonContainerComponent,
     NgFor,
+    FormsModule,
     NgStyle,
     HintComponent,
     ChanceShowComponent,
+    HiddenCodeComponent,
+    MusicPlayerComponent,
   ],
   template: `
     <div class="container max-w-none">
       <app-main-container>
-        <div left-column></div>
+        <div left-column>
+          <p>Ukryty kod</p>
+          <app-hidden-code [colors]="hiddenCode"></app-hidden-code>
+          <br />
+          <label> Muzyka <input type="checkbox" [(ngModel)]="playerVisible" /></label>
+          <br />
+          <app-music-player
+            [ngStyle]="{
+              visibility: playerVisible ? 'visible' : 'hidden'
+            }"
+          ></app-music-player>
+        </div>
         <div center-column>
           <app-stopwatch></app-stopwatch>
           <div class="row" *ngFor="let chance of getChancesArray(); let i = index">
@@ -84,6 +102,7 @@ import { Router } from "@angular/router";
 export class GameStartedComponent {
   gameId?: string;
   @ViewChild(StopwatchComponent) stopwatch!: StopwatchComponent;
+  @ViewChild(MusicPlayerComponent) musicPlayer!: MusicPlayerComponent;
   constructor(
     private route: ActivatedRoute,
     private gameService: GameService,
@@ -92,13 +111,14 @@ export class GameStartedComponent {
   ) {
     this.gameId = this.route.snapshot.paramMap.get("gameId") ?? "";
   }
-
+  playerVisible: boolean = true;
   containerColors: Colors[][] = this.createEmptyContainers(6);
   chances = 0;
   success = false;
   isEndGame = false;
   hints: Hint[] = [];
   hint?: Hint;
+  hiddenCode: Colors[] = [];
 
   private createEmptyContainers(count: number): Colors[][] {
     return Array.from({ length: count }, () => Array(4).fill(Colors.White));
@@ -115,6 +135,7 @@ export class GameStartedComponent {
   endGame(success: boolean, saveGame: boolean) {
     this.isEndGame = true;
     this.pauseStopwatch();
+    this.stopAudioPlayer();
     if (success) {
       this.notificationService.showToast("success", "Brawo ! Odgadłeś kod!");
       if (saveGame) {
@@ -125,6 +146,10 @@ export class GameStartedComponent {
           },
         });
       }
+      this.router.navigate(["/winner-page"]);
+    } else {
+      this.notificationService.showToast("error", "Przegrałeś !");
+      this.playDefeat();
     }
     this.gameService.deleteGame(this.gameId!).subscribe();
   }
@@ -148,12 +173,19 @@ export class GameStartedComponent {
       this.notificationService.showToast("error", "Typowałeś już ten kod");
       return;
     }
-    this.startStopwatch();
+    if (this.chances == 0) {
+      this.startStopwatch();
+      this.startAudioPlayer();
+    }
+
     const [firstColor, secondColor, thirdColor, fourthColor] =
       this.containerColors[this.chances];
     const userCode: Code = { firstColor, secondColor, thirdColor, fourthColor };
-
-    this.gameService.checkCode(this.gameId!, userCode).subscribe({
+    const request: CheckCodeRequest = {
+      userCode: userCode,
+      chances: this.chances,
+    };
+    this.gameService.checkCode(this.gameId!, request).subscribe({
       next: (response: ApiResponse<CheckCodeResponse>) => {
         this.handleCheckCodeResponse(response.body);
       },
@@ -184,6 +216,15 @@ export class GameStartedComponent {
   }
 
   handleCheckCodeResponse(response: CheckCodeResponse) {
+    if (response.hiddenCode) {
+      var code = response.hiddenCode;
+      this.hiddenCode = [
+        code.firstColor,
+        code.secondColor,
+        code.thirdColor,
+        code.fourthColor,
+      ];
+    }
     this.hints.push(response.hint);
     if (response.guessed) {
       this.success = true;
@@ -217,5 +258,21 @@ export class GameStartedComponent {
 
   resetStopwatch() {
     this.stopwatch.reset();
+  }
+
+  startAudioPlayer() {
+    if (this.playerVisible) {
+      this.musicPlayer.playNextTrack();
+    }
+  }
+
+  stopAudioPlayer() {
+    if (this.playerVisible) {
+      this.musicPlayer.stop();
+    }
+  }
+
+  playDefeat() {
+    this.musicPlayer.playLoser();
   }
 }

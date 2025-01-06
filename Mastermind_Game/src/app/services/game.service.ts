@@ -4,8 +4,8 @@ import { inject, Injectable } from "@angular/core";
 import { environment } from "../../enviroments/enviroment";
 import { GameInfo } from "../models/GameInfo";
 import { ApiResponse } from "../models/ApiResponse";
-import { Code } from "../models/GameInfo";
 import { CheckCodeResponse } from "../models/CheckCodeResponse";
+import { CheckCodeRequest } from "../models/CheckCodeRequest";
 
 @Injectable({ providedIn: "root" })
 export class GameService {
@@ -23,11 +23,14 @@ export class GameService {
       .pipe(catchError(this.handleError));
   }
 
-  checkCode(gameId: string, code: Code): Observable<ApiResponse<CheckCodeResponse>> {
+  checkCode(
+    gameId: string,
+    request: CheckCodeRequest
+  ): Observable<ApiResponse<CheckCodeResponse>> {
     return this.http
       .post<ApiResponse<CheckCodeResponse>>(
         this.apiUrl + `/game/${gameId}/guess`,
-        code,
+        request,
         this.getHttpOptions()
       )
       .pipe(catchError(this.handleError));
