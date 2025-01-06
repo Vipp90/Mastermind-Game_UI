@@ -5,6 +5,7 @@ export type CheckCodeResponse = {
   hint: Hint;
   saveGame: boolean;
   hiddenCode: Code;
+  chances: number;
 };
 
 export type Hint = {

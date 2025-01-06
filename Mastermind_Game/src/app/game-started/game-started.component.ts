@@ -111,6 +111,7 @@ export class GameStartedComponent {
   ) {
     this.gameId = this.route.snapshot.paramMap.get("gameId") ?? "";
   }
+
   playerVisible: boolean = true;
   containerColors: Colors[][] = this.createEmptyContainers(6);
   chances = 0;
@@ -125,7 +126,7 @@ export class GameStartedComponent {
   }
 
   getChancesArray(): number[] {
-    return Array.from({ length: this.chances + 1 });
+    return Array.from({ length: this.chances == 6 ? 6 : this.chances + 1 });
   }
 
   newGame() {
@@ -183,7 +184,7 @@ export class GameStartedComponent {
     const userCode: Code = { firstColor, secondColor, thirdColor, fourthColor };
     const request: CheckCodeRequest = {
       userCode: userCode,
-      chances: this.chances,
+      lastScore: this.stopwatch.time,
     };
     this.gameService.checkCode(this.gameId!, request).subscribe({
       next: (response: ApiResponse<CheckCodeResponse>) => {
@@ -199,7 +200,7 @@ export class GameStartedComponent {
         } else {
           this.notificationService.showToast(
             "error",
-            "Gra została zakończona lub usunięta."
+            "Gra została zakończona/usunięta lub strona była odświeżona."
           );
         }
       },
@@ -225,6 +226,7 @@ export class GameStartedComponent {
         code.fourthColor,
       ];
     }
+    this.chances = response.chances;
     this.hints.push(response.hint);
     if (response.guessed) {
       this.success = true;
@@ -235,9 +237,7 @@ export class GameStartedComponent {
   }
 
   private handleWrongGuess() {
-    if (this.chances < 5) {
-      this.chances++;
-    } else {
+    if (this.chances >= 6) {
       this.endGame(false, false);
     }
   }
